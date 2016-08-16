@@ -1,57 +1,51 @@
 -- luacheck: globals remote script game defines
 
+-- reuse same tables to reduce gc overheads
+local tempSensor = { 'evo_elev_temperature', 0 }
+local elevSensor = { 'evo_elev_elevation'  , 0 }
+
 local function initialise()
   remote.call( 'EvoGUI', 'create_remote_sensor', {
     mod_name = 'evo_elev_temp',
     name = 'evo_temp',
-    text = 'Temperature: 0ºC',
+    text = tempSensor,
     caption = 'Temperature'
   })
 
   remote.call( 'EvoGUI', 'create_remote_sensor', {
     mod_name = 'evo_elev_temp',
     name = 'evo_elev',
-    text = 'Elevation: 0m',
+    text = elevSensor,
     caption = 'Elevation'
   })
-end
+end--initialise
 
 script.on_init( initialise )
 script.on_load( initialise )
 
-local function round2dec( num, idp )
-  return string.format('%.' .. (idp or 0) .. 'f', num)
-end
+local format = string.format -- shortcut
 
-local lastPos = {0,0}
+local function updateSensors()
 
-local function updateStats()
-  local player = game.players[1]
-  local pos = { player.position.x, player.position.y }
+  if game.tick % 60 then -- once per second
 
-  local ready = game.tick % 10 -- every 10 seconds
-  local moved = not ready and ( pos[1] ~= lastPos[1] or pos[2] ~= lastPos[2] )
+    local player = game.players[1]
+    local pos  = player.position
+    local tile = player.surface.get_tileproperties( pos.x, pos.y )
 
-  if ready or moved then -- update sensor
-    local tile = player.surface.get_tileproperties( unpack( pos ) )
+    tempSensor[2] = format( '%.1f', tile.temperature )
+    elevSensor[2] = format( '%.2f', tile.elevation   )
 
-    lastPos = pos
-
-    remote.call(
-      'EvoGUI',
-      'update_remote_sensor',
-      'evo_elev',
-      'Elevation: '..round2dec( tile.elevation, 2 )..'m'
+    remote.call( 'EvoGUI', 'update_remote_sensor',
+      'evo_elev', elevSensor
     )
 
-    remote.call(
-      'EvoGUI',
-      'update_remote_sensor',
-      'evo_temp',
-      'Temperature: '..round2dec(tile.temperature)..'ºC'
+    remote.call( 'EvoGUI', 'update_remote_sensor',
+      'evo_temp', tempSensor
     )
-  end--if moved/update
 
-end
+  end
 
-script.on_event( defines.events.on_tick, updateStats )
+end--updateSensors
+
+script.on_event( defines.events.on_tick, updateSensors )
