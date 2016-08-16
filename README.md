@@ -1,6 +1,6 @@
 # evo_elev_temp
 
-Elevation and Temperature sensors for EvoGUI
+Elevation and Temperature sensors for [EvoGUI](https://github.com/narc0tiq/evoGUI)
 
 ![Screenshot](screenshot.png)
 
