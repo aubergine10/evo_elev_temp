@@ -1,6 +1,6 @@
-# evo_elev_temp
+# EvoGUI: Tile Information Sensors
 
-Elevation and Temperature sensors for [EvoGUI](https://github.com/narc0tiq/evoGUI)
+Tile-related information sensors for [EvoGUI](https://github.com/narc0tiq/evoGUI)
 
 ![Screenshot](screenshot.png)
 
